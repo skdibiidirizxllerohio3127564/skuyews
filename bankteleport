@@ -1,0 +1,12 @@
+local player = game:GetService("Players").LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+
+local teleportPosition = Vector3.new(-416, 19, -935)
+
+local function teleportPlayer()
+    if character and character:FindFirstChild("HumanoidRootPart") then
+        character.HumanoidRootPart.CFrame = CFrame.new(teleportPosition)
+    end
+end
+
+teleportPlayer()
