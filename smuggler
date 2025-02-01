@@ -1,0 +1,35 @@
+local player = game:GetService("Players").LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+
+local teleportPosition = Vector3.new(-628, 32, -838)
+
+local function teleportPlayer()
+    if character and character:FindFirstChild("HumanoidRootPart") then
+        character.HumanoidRootPart.CFrame = CFrame.new(teleportPosition)
+    end
+end
+
+teleportPlayer()
+
+wait(0.1)
+
+local player = game:GetService("Players").LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+
+local teleportPosition = Vector3.new(114, 4, 189)
+
+local function teleportPlayer()
+    if character and character:FindFirstChild("HumanoidRootPart") then
+        character.HumanoidRootPart.CFrame = CFrame.new(teleportPosition)
+    end
+end
+
+teleportPlayer()
+
+wait(0.2)
+
+workspace.Map.NPCs.MrX.Head.CFrame = CFrame.new(125.993713, 5.30005503, 171.628189, 
+    0.974287927, -0.000695910247, -0.225305513, 
+    0.000676335127, 0.999999762, -0.000164065597, 
+    0.225305572, 7.46508158e-06, 0.974288166)
+
