@@ -1,3 +1,14 @@
-local ChatFrame = game:GetService("Players").LocalPlayer.PlayerGui.Chat.Frame 
-ChatFrame.ChatChannelParentFrame.Visible = true 
-ChatFrame.ChatBarParentFrame.Position = ChatFrame.ChatChannelParentFrame.Position + UDim2.new(UDim.new(), ChatFrame.ChatChannelParentFrame.Size.Y)
+local player = game:GetService("Players").LocalPlayer
+
+local playerGui = player:WaitForChild("PlayerGui")
+local chat = playerGui:WaitForChild("Chat", 2)
+
+if chat then
+    local ChatFrame = chat:WaitForChild("Frame")
+    local ChatChannelParentFrame = ChatFrame:WaitForChild("ChatChannelParentFrame")
+    local ChatBarParentFrame = ChatFrame:WaitForChild("ChatBarParentFrame")
+    ChatChannelParentFrame.Visible = true
+    ChatBarParentFrame.Position = ChatChannelParentFrame.Position + UDim2.new(0, 0, ChatChannelParentFrame.Size.Y.Scale, ChatChannelParentFrame.Size.Y.Offset)
+else
+    warn("chat not found")
+end
