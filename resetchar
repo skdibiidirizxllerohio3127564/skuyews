@@ -1,14 +1,14 @@
-local player = game.Players.LocalPlayer
+local player = game:GetService("Players").LocalPlayer
 local hasReset = false
 
 local function resetCharacter()
-    if player.Character then
+    if player and player.Character then
         player.Character:BreakJoints()
     end
 end
 
 game:GetService("RunService").RenderStepped:Connect(function()
-    if not hasReset and player.Character and player.Character.Parent then
+    if not hasReset and player and player.Character and player.Character.Parent then
         resetCharacter()
         hasReset = true
     end
