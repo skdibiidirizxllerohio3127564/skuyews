@@ -1,14 +1,7 @@
-local player = game:GetService("Players").LocalPlayer
+local chatService = game:GetService("TextChatService")
 
-local playerGui = player:WaitForChild("PlayerGui")
-local chat = playerGui:WaitForChild("Chat", 2)
-
-if chat then
-    local ChatFrame = chat:WaitForChild("Frame")
-    local ChatChannelParentFrame = ChatFrame:WaitForChild("ChatChannelParentFrame")
-    local ChatBarParentFrame = ChatFrame:WaitForChild("ChatBarParentFrame")
-    ChatChannelParentFrame.Visible = true
-    ChatBarParentFrame.Position = ChatChannelParentFrame.Position + UDim2.new(0, 0, ChatChannelParentFrame.Size.Y.Scale, ChatChannelParentFrame.Size.Y.Offset)
+if chatService and chatService:FindFirstChild("ChatWindowConfiguration") then
+    chatService.ChatWindowConfiguration.Enabled = true
 else
-    warn("chat not found")
+    warn("cheat was not found")
 end
