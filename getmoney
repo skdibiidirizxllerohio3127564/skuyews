@@ -1,0 +1,34 @@
+ local Toggle = Tab:CreateToggle({
+    Name = "Get money (1500 ONCE EACH 24 HOURS)",
+    CurrentValue = false,
+    Flag = "GetMoney", 
+    Callback = function(Value)
+        if Value then
+            local player = game:GetService("Players").LocalPlayer
+            local character = player.Character or player.CharacterAdded:Wait()
+            local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+
+            if humanoidRootPart then
+                local originalCFrame = humanoidRootPart.CFrame  
+
+                humanoidRootPart.CFrame = CFrame.new(Vector3.new(-631, 55, -832))
+
+                local args1 = {
+                    [1] = "Smuggler",
+                    [2] = workspace.Map.NPCs.Smuggler.Head.Dialog.AGREE
+                }
+                game:GetService("ReplicatedStorage").Events.SmugglerDialogueChoiceChosenEvent:FireServer(unpack(args1))
+
+                local args2 = {
+                    [1] = "MrX",
+                    [2] = workspace.Map.NPCs.MrX.Head.Dialog.AGREE
+                }
+                game:GetService("ReplicatedStorage").Events.SmugglerDialogueChoiceChosenEvent:FireServer(unpack(args2))
+
+                task.wait(0.2)
+
+                humanoidRootPart.CFrame = originalCFrame
+            end
+        end
+    end,
+})
