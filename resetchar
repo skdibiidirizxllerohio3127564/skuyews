@@ -1,15 +1,6 @@
-local player = game:GetService("Players").LocalPlayer
-local hasReset = false
+local players = game:GetService("Players")
+local player = Players.LocalPlayer
 
-local function resetCharacter()
-    if player and player.Character then
-        player.Character:BreakJoints()
-    end
+if player and player.Character and player.Character:FindFirstChild("Humanoid") then
+    player.Character.Humanoid.Health = 0
 end
-
-game:GetService("RunService").RenderStepped:Connect(function()
-    if not hasReset and player and player.Character and player.Character.Parent then
-        resetCharacter()
-        hasReset = true
-    end
-end)
