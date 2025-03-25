@@ -52,6 +52,9 @@ _G.createnotification = function(text, type)
     elseif type == "warning" then
         icon.Image = "rbxassetid://14865930635"
         icon.ImageColor3 = Color3.fromRGB(116, 15, 227)
+    elseif type == "waiting" then
+        icon.Image = "rbxassetid://16968972236"
+        icon.ImageColor3 = Color3.fromRGB(116, 15, 227)
     elseif type == "error" then
         icon.Image = "rbxassetid://6031094677"
         icon.ImageColor3 = Color3.fromRGB(116, 15, 227)
