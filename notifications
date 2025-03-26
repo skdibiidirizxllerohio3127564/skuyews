@@ -21,6 +21,8 @@ if not notificationContainer then
 end
 
 _G.createnotification = function(text, type)
+    task.spawn(function()
+
     for _, notif in pairs(notificationContainer:GetChildren()) do
         if notif:IsA("Frame") then
             notif:TweenPosition(notif.Position - UDim2.new(0, 0, 0, 35), "Out", "Quad", 0.5, true)
