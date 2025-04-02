@@ -1,279 +1,302 @@
--- Settings
-local Settings = {
-    Box_Color = Color3.fromRGB(255, 0, 0),
-    Box_Thickness = 2,
-    Team_Check = false,
-    Team_Color = false,
-    Autothickness = true
+wait(4)
+if not game:IsLoaded() then
+    game.Loaded:Wait()
+end
+
+local esptoggle = "p" -- toggle key
+
+
+
+
+--[Main Variables]
+
+local plrs = game["Players"]
+local rs = game:GetService("RunService")
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local UserInputService = game:GetService("UserInputService")
+local Lighting = game:GetService("Lighting")
+local Teams = game:GetService("Teams")
+local RunService = game:GetService("RunService")
+local TeleportService = game:GetService("TeleportService")
+
+local LocalPlayer = Players.LocalPlayer
+local Mouse = LocalPlayer:GetMouse()
+local CurrentCamera = workspace.CurrentCamera
+local plr = plrs.LocalPlayer
+local mouse = plr:GetMouse()
+local camera = workspace.CurrentCamera
+local worldToViewportPoint = camera.worldToViewportPoint
+local cc = Instance.new("ColorCorrectionEffect", game.Lighting)
+local blur = Instance.new("BlurEffect", game.Lighting)
+local sun = Instance.new("SunRaysEffect", game.Lighting)
+blur.Size = 0
+sun.Intensity = 0
+
+--[Optimisation Variables]
+
+local Drawingnew = Drawing.new
+local Color3fromRGB = Color3.fromRGB
+local Vector3new = Vector3.new
+local Vector2new = Vector2.new
+local mathfloor = math.floor
+local mathceil = math.ceil
+
+--[Setup Table]
+
+-- esp.enabled
+
+local esp = {
+    players = {},
+    enabled = false,
+    teamcheck = true,
+    fontsize = 16,
+    font = 0,
+    settings = {
+        name = {
+            enabled = true,
+            outline = true,
+            color = Color3fromRGB(0, 0, 0),
+            outlineColor = Color3fromRGB(105, 105, 105)
+        },
+        box = {
+            enabled = true,
+            outline = true,
+            color = Color3fromRGB(255, 255, 255),
+            outlineColor = Color3fromRGB(255, 255, 255)
+        },
+        healthbar = {
+            enabled = true,
+            outline = true,
+            color = Color3fromRGB(31, 242, 42),
+            outlineColor = Color3fromRGB(31, 242, 42)
+        },
+        healthtext = {
+            enabled = true,
+            outline = true,
+            color = Color3fromRGB(31, 242, 42),
+            outlineColor = Color3fromRGB(31, 242, 42)
+        },
+        distance = {
+            enabled = true,
+            outline = true,
+            color = Color3fromRGB(0, 0, 0),
+            outlineColor = Color3fromRGB(105, 105, 105)
+        }
+    }
 }
 
---Locals
-local Space = game:GetService("Workspace")
-local Player = game:GetService("Players").LocalPlayer
-local Camera = Space.CurrentCamera
+esp.NewDrawing = function(type, properties)
+    local newDrawing = Drawingnew(type)
 
--- Function to create ESP name label
-local function CreateNameTag(player)
-    local nameTag = Drawing.new("Text")
-    nameTag.Visible = false
-    nameTag.Color = Color3.fromRGB(255, 255, 255)
-    nameTag.Size = 14
-    nameTag.Center = true
-    nameTag.Outline = true
-    nameTag.Font = 1
-    return nameTag
-end
-
--- Locals
-local function NewLine(color, thickness)
-    local line = Drawing.new("Line")
-    line.Visible = false
-    line.From = Vector2.new(0, 0)
-    line.To = Vector2.new(0, 0)
-    line.Color = color
-    line.Thickness = thickness
-    line.Transparency = 1
-    return line
-end
-
-local function Vis(lib, state)
-    for _, v in pairs(lib) do
-        v.Visible = state
+    for i, v in next, properties or {} do
+        newDrawing[i] = v
     end
+
+    return newDrawing
 end
 
-local function Colorize(lib, color)
-    for _, v in pairs(lib) do
-        v.Color = color
-    end
-end
-
-local function Main(plr)
-    repeat wait() until plr.Character and plr.Character:FindFirstChild("Humanoid")
-    
-    local Library = {
-        TL1 = NewLine(Settings.Box_Color, Settings.Box_Thickness),
-        TL2 = NewLine(Settings.Box_Color, Settings.Box_Thickness),
-        TR1 = NewLine(Settings.Box_Color, Settings.Box_Thickness),
-        TR2 = NewLine(Settings.Box_Color, Settings.Box_Thickness),
-        BL1 = NewLine(Settings.Box_Color, Settings.Box_Thickness),
-        BL2 = NewLine(Settings.Box_Color, Settings.Box_Thickness),
-        BR1 = NewLine(Settings.Box_Color, Settings.Box_Thickness),
-        BR2 = NewLine(Settings.Box_Color, Settings.Box_Thickness)
+esp.NewPlayer = function(v)
+    esp.players[v] = {
+        name = esp.NewDrawing(
+            "Text",
+            {Color = Color3fromRGB(94, 0, 255), Outline = true, Center = true, Size = 13, Font = 0}
+        ),
+        boxOutline = esp.NewDrawing("Square", {Color = Color3fromRGB(0, 0, 0), Thickness = 3}),
+        box = esp.NewDrawing("Square", {Color = Color3fromRGB(108, 11, 204), Thickness = 1}),
+        healthBarOutline = esp.NewDrawing("Line", {Color = Color3fromRGB(0, 0, 0), Thickness = 3}),
+        healthBar = esp.NewDrawing("Line", {Color = Color3fromRGB(255, 255, 255), Thickness = 1}),
+        healthText = esp.NewDrawing(
+            "Text",
+            {Color = Color3fromRGB(94, 0, 255), Outline = true, Center = true, Size = 13, Font = 0}
+        ),
+        distance = esp.NewDrawing(
+            "Text",
+            {Color = Color3fromRGB(94, 0, 255), Outline = true, Center = true, Size = 13, Font = 0}
+        )
     }
-    
-    local nameTag = CreateNameTag(plr)
-    
-    local function Updater()
-        local c = game:GetService("RunService").RenderStepped:Connect(function()
-            if plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") and plr.Character.Humanoid.Health > 0 then
-                local rootPart = plr.Character.HumanoidRootPart
-                local screenPos, vis = Camera:WorldToViewportPoint(rootPart.Position)
-                
-                if vis then
-                    nameTag.Position = Vector2.new(screenPos.X, screenPos.Y - 30)
-                    nameTag.Text = plr.Name
-                    nameTag.Visible = true
-                    Vis(Library, true)
+end
+
+for _, v in ipairs(plrs:GetPlayers()) do
+    esp.NewPlayer(v)
+end
+
+plrs.PlayerAdded:Connect(
+    function(v)
+        esp.NewPlayer(v)
+    end
+)
+
+plrs.PlayerRemoving:Connect(
+    function(v)
+        for i, v in pairs(esp.players[v]) do
+            v:Remove()
+        end
+        esp.players[v] = nil
+    end
+)
+
+local mainLoop =
+    rs.RenderStepped:Connect(
+    function()
+        for i, v in pairs(esp.players) do
+            if
+                i ~= plr and i.Character and i.Character:FindFirstChild("Humanoid") and
+                    i.Character:FindFirstChild("HumanoidRootPart") and
+                    i.Character:FindFirstChild("Head")
+             then
+                local hum = i.Character.Humanoid
+                local hrp = i.Character.HumanoidRootPart
+                local head = i.Character.Head
+
+                local Vector, onScreen = camera:WorldToViewportPoint(i.Character.HumanoidRootPart.Position)
+
+                local Size =
+                    (camera:WorldToViewportPoint(hrp.Position - Vector3new(0, 3, 0)).Y -
+                    camera:WorldToViewportPoint(hrp.Position + Vector3new(0, 2.6, 0)).Y) /
+                    2
+                local BoxSize = Vector2new(mathfloor(Size * 1.5), mathfloor(Size * 1.9))
+                local BoxPos = Vector2new(mathfloor(Vector.X - Size * 1.5 / 2), mathfloor(Vector.Y - Size * 1.6 / 2))
+
+                local BottomOffset = BoxSize.Y + BoxPos.Y + 1
+
+                if onScreen and esp.enabled then
+                    if esp.settings.name.enabled then
+                        v.name.Position = Vector2new(BoxSize.X / 2 + BoxPos.X, BoxPos.Y - 16)
+                        v.name.Outline = esp.settings.name.outline
+                        v.name.Text = tostring(i)
+                        v.name.Color = esp.settings.name.color
+                        v.name.OutlineColor = esp.settings.name.outlineColor
+                        v.name.Font = esp.font
+                        v.name.Size = esp.fontsize
+
+                        v.name.Visible = true
+                    else
+                        v.name.Visible = false
+                    end
+
+                    if
+                        esp.settings.distance.enabled and plr.Character and
+                            plr.Character:FindFirstChild("HumanoidRootPart")
+                     then
+                        v.distance.Position = Vector2new(BoxSize.X / 2 + BoxPos.X, BottomOffset)
+                        v.distance.Outline = esp.settings.distance.outline
+                        v.distance.Text =
+                            "[" .. mathfloor((hrp.Position - plr.Character.HumanoidRootPart.Position).Magnitude) .. "m]"
+                        v.distance.Color = esp.settings.distance.color
+                        v.distance.OutlineColor = esp.settings.distance.outlineColor
+                        BottomOffset = BottomOffset + 15
+
+                        v.distance.Font = esp.font
+                        v.distance.Size = esp.fontsize
+
+                        v.distance.Visible = true
+                    else
+                        v.distance.Visible = false
+                    end
+
+                    if esp.settings.box.enabled then
+                        v.boxOutline.Size = BoxSize
+                        v.boxOutline.Position = BoxPos
+                        v.boxOutline.Visible = esp.settings.box.outline
+                        v.boxOutline.Color = esp.settings.box.outlineColor
+
+                        v.box.Size = BoxSize
+                        v.box.Position = BoxPos
+                        v.box.Color = esp.settings.box.color
+                        v.box.Visible = true
+                    else
+                        v.boxOutline.Visible = false
+                        v.box.Visible = false
+                    end
+
+                    if esp.settings.healthbar.enabled then
+                        v.healthBar.From = Vector2new((BoxPos.X - 5), BoxPos.Y + BoxSize.Y)
+                        v.healthBar.To =
+                            Vector2new(
+                            v.healthBar.From.X,
+                            v.healthBar.From.Y - (hum.Health / hum.MaxHealth) * BoxSize.Y
+                        )
+                        v.healthBar.Color = esp.settings.healthbar.color
+                        v.healthBar.Visible = true
+
+                        v.healthBarOutline.From = Vector2new(v.healthBar.From.X, BoxPos.Y + BoxSize.Y + 1)
+                        v.healthBarOutline.To = Vector2new(v.healthBar.From.X, (v.healthBar.From.Y - 1 * BoxSize.Y) - 1)
+                        v.healthBarOutline.Color = esp.settings.healthbar.outlineColor
+                        v.healthBarOutline.Visible = esp.settings.healthbar.outline
+                    else
+                        v.healthBarOutline.Visible = false
+                        v.healthBar.Visible = false
+                    end
+
+                    if esp.settings.healthtext.enabled then
+                        v.healthText.Text = tostring(mathfloor((hum.Health / hum.MaxHealth) * 100 + 0.5))
+                        v.healthText.Position = Vector2new((BoxPos.X - 20), (BoxPos.Y + BoxSize.Y - 1 * BoxSize.Y) - 1)
+                        v.healthText.Color = esp.settings.healthtext.color
+                        v.healthText.OutlineColor = esp.settings.healthtext.outlineColor
+                        v.healthText.Outline = esp.settings.healthtext.outline
+
+                        v.healthText.Font = esp.font
+                        v.healthText.Size = esp.fontsize
+
+                        v.healthText.Visible = true
+                    else
+                        v.healthText.Visible = false
+                    end
+
+                    if esp.teamcheck then
+                        if v.TeamColor ~= plr.TeamColor then
+                            v.name.Visible = esp.settings.name.enabled
+                            v.box.Visible = esp.settings.box.enabled
+                            v.healthBar.Visible = esp.settings.healthbar.enabled
+                            v.healthText.Visible = esp.settings.healthtext.enabled
+                            v.distance.Visible = esp.settings.distance.enabled
+                        else
+                            v.name.Visible = false
+                            v.boxOutline.Visible = false
+                            v.box.Visible = false
+                            v.healthBarOutline.Visible = false
+                            v.healthBar.Visible = false
+                            v.healthText.Visible = false
+                            v.distance.Visible = false
+                        end
+                    end
                 else
-                    nameTag.Visible = false
-                    Vis(Library, false)
+                    v.name.Visible = false
+                    v.boxOutline.Visible = false
+                    v.box.Visible = false
+                    v.healthBarOutline.Visible = false
+                    v.healthBar.Visible = false
+                    v.healthText.Visible = false
+                    v.distance.Visible = false
                 end
             else
-                nameTag.Visible = false
-                Vis(Library, false)
-                if not game:GetService("Players"):FindFirstChild(plr.Name) then
-                    for _, v in pairs(Library) do v:Remove() end
-                    nameTag:Remove()
-                    c:Disconnect()
-                end
+                v.name.Visible = false
+                v.boxOutline.Visible = false
+                v.box.Visible = false
+                v.healthBarOutline.Visible = false
+                v.healthBar.Visible = false
+                v.healthText.Visible = false
+                v.distance.Visible = false
             end
-        end)
+        end
     end
-    
-    coroutine.wrap(Updater)()
+)
+
+getgenv().esp = esp
+--esp
+
+
+local mouse = game.Players.LocalPlayer:GetMouse()
+
+
+
+mouse.KeyDown:Connect(function(value)
+if value == esptoggle then
+if esp.enabled == true then
+	esp.enabled = false
+else
+	esp.enabled = true
 end
-
--- Draw Boxes
-for _, v in pairs(game:GetService("Players"):GetPlayers()) do
-    if v.Name ~= Player.Name then
-        coroutine.wrap(Main)(v)
-    end
 end
-
-game:GetService("Players").PlayerAdded:Connect(function(newplr)
-    coroutine.wrap(Main)(newplr)
-end)
-
-
-
--- Settings
-local Settings = {
-    Box_Color = Color3.fromRGB(255, 0, 0),
-    Box_Thickness = 2,
-    Team_Check = false,
-    Team_Color = false,
-    Autothickness = true
-}
-
---Locals
-local Space = game:GetService("Workspace")
-local Player = game:GetService("Players").LocalPlayer
-local Camera = Space.CurrentCamera
-
--- Locals
-local function NewLine(color, thickness)
-    local line = Drawing.new("Line")
-    line.Visible = false
-    line.From = Vector2.new(0, 0)
-    line.To = Vector2.new(0, 0)
-    line.Color = color
-    line.Thickness = thickness
-    line.Transparency = 1
-    return line
-end
-
-local function Vis(lib, state)
-    for i, v in pairs(lib) do
-        v.Visible = state
-    end
-end
-
-local function Colorize(lib, color)
-    for i, v in pairs(lib) do
-        v.Color = color
-    end
-end
-
-local Black = Color3.fromRGB(0, 0, 0)
-
-local function Rainbow(lib, delay)
-    for hue = 0, 1, 1/30 do
-        local color = Color3.fromHSV(hue, 0.6, 1)
-        Colorize(lib, color)
-        wait(delay)
-    end
-    Rainbow(lib)
-end
---Main Draw Function
-local function Main(plr)
-    repeat wait() until plr.Character ~= nil and plr.Character:FindFirstChild("Humanoid") ~= nil
-    local R15
-    if plr.Character.Humanoid.RigType == Enum.HumanoidRigType.R15 then
-        R15 = true
-    else 
-        R15 = false
-    end
-    local Library = {
-        TL1 = NewLine(Settings.Box_Color, Settings.Box_Thickness),
-        TL2 = NewLine(Settings.Box_Color, Settings.Box_Thickness),
-
-        TR1 = NewLine(Settings.Box_Color, Settings.Box_Thickness),
-        TR2 = NewLine(Settings.Box_Color, Settings.Box_Thickness),
-
-        BL1 = NewLine(Settings.Box_Color, Settings.Box_Thickness),
-        BL2 = NewLine(Settings.Box_Color, Settings.Box_Thickness),
-
-        BR1 = NewLine(Settings.Box_Color, Settings.Box_Thickness),
-        BR2 = NewLine(Settings.Box_Color, Settings.Box_Thickness)
-    }
-    coroutine.wrap(Rainbow)(Library, 0.15)
-    local oripart = Instance.new("Part")
-    oripart.Parent = Space
-    oripart.Transparency = 1
-    oripart.CanCollide = false
-    oripart.Size = Vector3.new(1, 1, 1)
-    oripart.Position = Vector3.new(0, 0, 0)
-    --Updater Loop
-    local function Updater()
-        local c 
-        c = game:GetService("RunService").RenderStepped:Connect(function()
-            if plr.Character ~= nil and plr.Character:FindFirstChild("Humanoid") ~= nil and plr.Character:FindFirstChild("HumanoidRootPart") ~= nil and plr.Character.Humanoid.Health > 0 and plr.Character:FindFirstChild("Head") ~= nil then
-                local Hum = plr.Character
-                local HumPos, vis = Camera:WorldToViewportPoint(Hum.HumanoidRootPart.Position)
-                if vis then
-                    oripart.Size = Vector3.new(Hum.HumanoidRootPart.Size.X, Hum.HumanoidRootPart.Size.Y*1.5, Hum.HumanoidRootPart.Size.Z)
-                    oripart.CFrame = CFrame.new(Hum.HumanoidRootPart.CFrame.Position, Camera.CFrame.Position)
-                    local SizeX = oripart.Size.X
-                    local SizeY = oripart.Size.Y
-                    local TL = Camera:WorldToViewportPoint((oripart.CFrame * CFrame.new(SizeX, SizeY, 0)).p)
-                    local TR = Camera:WorldToViewportPoint((oripart.CFrame * CFrame.new(-SizeX, SizeY, 0)).p)
-                    local BL = Camera:WorldToViewportPoint((oripart.CFrame * CFrame.new(SizeX, -SizeY, 0)).p)
-                    local BR = Camera:WorldToViewportPoint((oripart.CFrame * CFrame.new(-SizeX, -SizeY, 0)).p)
-
-                    if Settings.Team_Check then
-                        if plr.TeamColor == Player.TeamColor then
-                            Colorize(Library, Color3.fromRGB(0, 255, 0))
-                        else 
-                            Colorize(Library, Color3.fromRGB(255, 0, 0))
-                        end
-                    end
-
-                    if Settings.Team_Color then
-                        Colorize(Library, plr.TeamColor.Color)
-                    end
-
-                    local ratio = (Camera.CFrame.p - Hum.HumanoidRootPart.Position).magnitude
-                    local offset = math.clamp(1/ratio*750, 2, 300)
-
-                    Library.TL1.From = Vector2.new(TL.X, TL.Y)
-                    Library.TL1.To = Vector2.new(TL.X + offset, TL.Y)
-                    Library.TL2.From = Vector2.new(TL.X, TL.Y)
-                    Library.TL2.To = Vector2.new(TL.X, TL.Y + offset)
-
-                    Library.TR1.From = Vector2.new(TR.X, TR.Y)
-                    Library.TR1.To = Vector2.new(TR.X - offset, TR.Y)
-                    Library.TR2.From = Vector2.new(TR.X, TR.Y)
-                    Library.TR2.To = Vector2.new(TR.X, TR.Y + offset)
-
-                    Library.BL1.From = Vector2.new(BL.X, BL.Y)
-                    Library.BL1.To = Vector2.new(BL.X + offset, BL.Y)
-                    Library.BL2.From = Vector2.new(BL.X, BL.Y)
-                    Library.BL2.To = Vector2.new(BL.X, BL.Y - offset)
-
-                    Library.BR1.From = Vector2.new(BR.X, BR.Y)
-                    Library.BR1.To = Vector2.new(BR.X - offset, BR.Y)
-                    Library.BR2.From = Vector2.new(BR.X, BR.Y)
-                    Library.BR2.To = Vector2.new(BR.X, BR.Y - offset)
-
-                    Vis(Library, true)
-
-                    if Settings.Autothickness then
-                        local distance = (Player.Character.HumanoidRootPart.Position - oripart.Position).magnitude
-                        local value = math.clamp(1/distance*100, 1, 4) --0.1 is min thickness, 6 is max
-                        for u, x in pairs(Library) do
-                            x.Thickness = value
-                        end
-                    else 
-                        for u, x in pairs(Library) do
-                            x.Thickness = Settings.Box_Thickness
-                        end
-                    end
-                else 
-                    Vis(Library, false)
-                end
-            else 
-                Vis(Library, false)
-                if game:GetService("Players"):FindFirstChild(plr.Name) == nil then
-                    for i, v in pairs(Library) do
-                        v:Remove()
-                        oripart:Destroy()
-                    end
-                    c:Disconnect()
-                end
-            end
-        end)
-    end
-    coroutine.wrap(Updater)()
-end
-
--- Draw Boxes
-for i, v in pairs(game:GetService("Players"):GetPlayers()) do
-    if v.Name ~= Player.Name then
-      coroutine.wrap(Main)(v)
-    end
-end
-
-game:GetService("Players").PlayerAdded:Connect(function(newplr)
-    coroutine.wrap(Main)(newplr)
 end)
